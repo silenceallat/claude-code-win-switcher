@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>环境参数管理器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: radial-gradient(circle at top left, #f7f9ff, #edf1ff 35%, #f8f9fb 70%, #fefefe 100%);
+            color: #1d1d1f;
+            font-size: 16px;
+            line-height: 1.5;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .app-banner {
+            width: 100%;
+            padding: 28px 40px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #0f172a;
+        }
+
+        .app-banner .banner-title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .app-banner .banner-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+        }
+
+        .container {
+            display: flex;
+            min-height: calc(100vh - 120px);
+            width: 100%;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(22, 34, 57, 0.12);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 340px;
+            background: linear-gradient(160deg, #111827 0%, #1f2a44 80%);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            color: #f8fbff;
+        }
+
+        .sidebar-header {
+            padding: 28px 24px 8px;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .config-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 20px 20px;
+        }
+
+        .config-item {
+            padding: 16px 18px;
+            margin: 10px 0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            border: 1px solid transparent;
+            position: relative;
+            box-shadow: 0 6px 18px rgba(6, 15, 40, 0.2);
+        }
+
+        .config-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .config-item.active {
+            background: linear-gradient(120deg, #4f9dff, #7c5dff);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 12px 30px rgba(79, 157, 255, 0.35);
+        }
+
+        .config-item.active::after {
+            content: '正在使用';
+            position: absolute;
+            top: -10px;
+            right: 18px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            letter-spacing: 0.5px;
+        }
+
+        .config-item-name {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .config-item-star {
+            font-size: 16px;
+        }
+
+        .config-item.active .config-item-star {
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+        }
+
+        .config-item-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .config-item:hover .config-item-actions,
+        .config-item.active .config-item-actions {
+            opacity: 1;
+        }
+
+        .btn-small {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: inherit;
+            cursor: pointer;
+            padding: 6px 10px;
+            font-size: 14px;
+            transition: background 0.15s;
+        }
+
+        .config-item.active .btn-small {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        .btn-small:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .config-item.active .btn-small:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-actions {
+            padding: 20px 24px 28px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: rgba(0, 0, 0, 0.08);
+            position: sticky;
+            bottom: 0;
+            box-shadow: 0 -20px 35px rgba(0, 0, 0, 0.35);
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            z-index: 5;
+        }
+
+        .sidebar-actions-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #e5e7fb;
+            font-weight: 500;
+        }
+
+        .sidebar-actions-hint .hint-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #1f2a44;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 6px 18px rgba(255, 255, 255, 0.4);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, #fefefe 0%, #f5f6fb 100%);
+        }
+
+        .top-bar {
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid #ececf3;
+            padding: 24px 40px;
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f5f5f7;
+            color: #1d1d1f;
+        }
+
+        .btn:hover {
+            background: #ececf1;
+        }
+
+        .btn.primary {
+            background: #0071e3;
+            color: #ffffff;
+        }
+
+        .btn.primary:hover {
+            background: #0077ed;
+        }
+
+        .btn.success {
+            background: #34c759;
+            color: #ffffff;
+        }
+
+        .btn.success:hover {
+            background: #30b54b;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 360px;
+            gap: 24px;
+            padding: 28px 40px 40px;
+            overflow: hidden;
+        }
+
+        .editor-panel {
+            flex: 1;
+            background: linear-gradient(145deg, #ffffff, #f4f7ff);
+            border-radius: 24px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.1);
+            border: 1px solid #eef0ff;
+        }
+
+        .editor-panel.empty {
+            justify-content: center;
+            align-items: center;
+            color: #86868b;
+        }
+
+        .editor-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .editor-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .current-config-chip {
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(0, 113, 227, 0.1);
+            color: #0060c5;
+            border: 1px solid rgba(0, 113, 227, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #86868b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+            transition: border-color 0.2s;
+        }
+
+        #inputModalInput {
+            width: calc(100% - 48px);
+            margin: 0 24px;
+            padding: 14px 16px;
+            margin-bottom: 24px;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #0071e3;
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+        }
+
+        .validation-warning {
+            font-size: 14px;
+            color: #f5a623;
+            margin-top: 6px;
+        }
+
+        .status-panel {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.92);
+            border-radius: 24px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: 0 40px 70px rgba(5, 12, 28, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #e2e8ff;
+        }
+
+        .status-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-title::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.8);
+        }
+
+        .status-item {
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .status-item-label {
+            color: rgba(255, 255, 255, 0.65);
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            cursor: help;
+        }
+
+        .status-item-value {
+            color: #ffffff;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            word-break: break-all;
+            font-size: 15px;
+            line-height: 1.4;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 24px 0 24px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #86868b;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #f5f5f7;
+            color: #1d1d1f;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+
+        .modal-message {
+            font-size: 16px;
+            color: #86868b;
+            line-height: 1.6;
+            padding: 16px 24px 0 24px;
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            padding: 0 24px 24px 24px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
+
+        /* Toast提示样式 */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 300px;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border: 1px solid #e5e5e7;
+            pointer-events: auto;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.hide {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .toast-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1d1d1f;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #86868b;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .toast-close:hover {
+            background: #f5f5f7;
+            color: #1d1d1f;
+        }
+
+        .toast-message {
+            color: #86868b;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .toast.success {
+            border-left: 4px solid #34c759;
+        }
+
+        .toast.success .toast-title {
+            color: #34c759;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ff3b30;
+        }
+
+        .toast.error .toast-title {
+            color: #ff3b30;
+        }
+
+        .toast.warning {
+            border-left: 4px solid #f5a623;
+        }
+
+        .toast.warning .toast-title {
+            color: #f5a623;
+        }
+
+        .toast.info {
+            border-left: 4px solid #0071e3;
+        }
+
+        .toast.info .toast-title {
+            color: #0071e3;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background: currentColor;
+            opacity: 0.3;
+            transition: width linear;
+        }
+
+        .toast.success .toast-progress {
+            background: #34c759;
+        }
+
+        .toast.error .toast-progress {
+            background: #ff3b30;
+        }
+
+        .toast.warning .toast-progress {
+            background: #f5a623;
+        }
+
+        .toast.info .toast-progress {
+            background: #0071e3;
+        }
+
+        
+        
+        /* 倒计时 */
+        .countdown {
+            margin-top: 16px;
+            font-size: 14px;
+            color: #86868b;
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d2d2d7;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a6;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .status-panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-banner">
+        <div>
+            <div class="banner-title">Claude Code · AI模型配置切换</div>
+            <div class="banner-subtitle">Windows 系统版本管理面板</div>
+        </div>
+    </div>
+    <div class="container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">配置</div>
+            </div>
+            <div class="config-list" id="configList"></div>
+            <div class="sidebar-actions">
+                <div class="sidebar-actions-hint">
+                    <span class="hint-icon">✨</span>
+                    <span>首次使用？先创建一个配置</span>
+                </div>
+                <button class="btn primary" onclick="createNewConfig()" style="flex: 1; font-weight: 600;">+ 新建配置</button>
+            </div>
+        </div>
+
+        <!-- 主内容 -->
+        <div class="main-content">
+            <div class="top-bar">
+                <button class="btn primary" onclick="applyCurrentConfig()" id="applyBtn">应用配置</button>
+                <button class="btn" onclick="saveCurrentConfig()" id="saveBtn">保存修改</button>
+                <button class="btn" onclick="refreshEnvVars()">刷新状态</button>
+                <button class="btn" onclick="exportConfigs()">导出</button>
+                <button class="btn" onclick="importConfigs()">导入</button>
+            </div>
+
+            <div class="content-wrapper">
+                <!-- 编辑面板 -->
+                <div class="editor-panel empty" id="editorPanel">
+                    <div style="text-align: center;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">📝</div>
+                        <div style="font-size: 18px; color: #86868b;">选择一个配置开始编辑</div>
+                    </div>
+                </div>
+
+                <!-- 状态面板 -->
+                <div class="status-panel">
+                    <div class="status-title">当前系统环境变量</div>
+                    <div id="statusContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 权限提升模态框 -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">需要管理员权限</div>
+                <button class="modal-close" onclick="closeAdminModal()">×</button>
+            </div>
+            <div class="modal-message">
+                此应用需要管理员权限才能修改系统环境变量。<br>
+                如不操作，将在 <span id="countdown">6</span> 秒后自动提升权限。
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeAdminModal()">取消</button>
+                <button class="btn primary" onclick="requestAdminPrivilege()">立即提升</button>
+            </div>
+            <div class="countdown" id="countdownText"></div>
+        </div>
+    </div>
+
+    <!-- 确认对话框模态框 -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="confirmTitle">确认操作</div>
+                <button class="modal-close" onclick="closeConfirmModal()">×</button>
+            </div>
+            <div class="modal-message" id="confirmMessage">
+                确定要执行此操作吗？
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeConfirmModal()">取消</button>
+                <button class="btn primary" id="confirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输入对话框模态框 -->
+    <div class="modal" id="inputModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="inputModalTitle">输入</div>
+                <button class="modal-close" onclick="closeInputModal()">×</button>
+            </div>
+            <div class="modal-message" id="inputModalMessage">请输入内容</div>
+            <input type="text" class="form-input" id="inputModalInput" placeholder="">
+            <div class="validation-warning" id="inputModalError"></div>
+            <div class="modal-actions">
+                <button class="btn" id="inputModalCancelBtn">取消</button>
+                <button class="btn primary" id="inputModalConfirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用提示模态框容器 -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script>
+        let currentConfigId = null;
+        let configsData = {};
+        let countdownInterval = null;
+        let toastQueue = [];
+        let isProcessingToast = false;
+        let inputDialogState = {
+            resolve: null,
+            validator: null,
+            required: true
+        };
+        const inputModalElement = document.getElementById('inputModal');
+        const inputModalTitle = document.getElementById('inputModalTitle');
+        const inputModalMessage = document.getElementById('inputModalMessage');
+        const inputModalInput = document.getElementById('inputModalInput');
+        const inputModalError = document.getElementById('inputModalError');
+        const inputModalConfirmBtn = document.getElementById('inputModalConfirmBtn');
+        const inputModalCancelBtn = document.getElementById('inputModalCancelBtn');
+
+        // Toast提示系统
+        class ToastManager {
+            constructor() {
+                this.container = document.getElementById('toastContainer');
+            }
+
+            show(title, message, type = 'info', duration = 2000) {
+                const toast = {
+                    id: Date.now() + Math.random(),
+                    title,
+                    message,
+                    type,
+                    duration
+                };
+
+                toastQueue.push(toast);
+                this.processQueue();
+            }
+
+            processQueue() {
+                if (isProcessingToast || toastQueue.length === 0) return;
+
+                isProcessingToast = true;
+                const toast = toastQueue.shift();
+                this.showToast(toast);
+            }
+
+            showToast(toast) {
+                const toastElement = document.createElement('div');
+                toastElement.className = `toast ${toast.type}`;
+                toastElement.innerHTML = `
+                    <div class="toast-header">
+                        <div class="toast-title">${this.getTitleByType(toast.type)}</div>
+                        <button class="toast-close" onclick="toastManager.close('${toast.id}')">×</button>
+                    </div>
+                    <div class="toast-message">${toast.message}</div>
+                    <div class="toast-progress" style="width: 100%; transition-duration: ${toast.duration}ms;"></div>
+                `;
+
+                toastElement.id = `toast-${toast.id}`;
+                this.container.appendChild(toastElement);
+
+                // 触发动画
+                setTimeout(() => {
+                    toastElement.classList.add('show');
+                }, 10);
+
+                // 设置进度条动画
+                setTimeout(() => {
+                    const progressBar = toastElement.querySelector('.toast-progress');
+                    progressBar.style.width = '0%';
+                }, 100);
+
+                // 自动关闭
+                setTimeout(() => {
+                    this.close(toast.id);
+                }, toast.duration);
+            }
+
+            close(toastId) {
+                const toastElement = document.getElementById(`toast-${toastId}`);
+                if (!toastElement) return;
+
+                toastElement.classList.add('hide');
+                setTimeout(() => {
+                    if (toastElement.parentNode) {
+                        toastElement.parentNode.removeChild(toastElement);
+                    }
+                    isProcessingToast = false;
+                    this.processQueue();
+                }, 300);
+            }
+
+            getTitleByType(type) {
+                const titles = {
+                    'success': '成功',
+                    'error': '错误',
+                    'warning': '警告',
+                    'info': '提示'
+                };
+                return titles[type] || '提示';
+            }
+
+            // 便捷方法
+            success(message, duration = 2000) {
+                this.show('成功', message, 'success', duration);
+            }
+
+            error(message, duration = 3000) {
+                this.show('错误', message, 'error', duration);
+            }
+
+            warning(message, duration = 2500) {
+                this.show('警告', message, 'warning', duration);
+            }
+
+            info(message, duration = 2000) {
+                this.show('提示', message, 'info', duration);
+            }
+        }
+
+        // 创建全局Toast管理器
+        const toastManager = new ToastManager();
+
+        // 确认对话框管理
+        let confirmCallback = null;
+
+        function showConfirmDialog(title, message, onConfirm) {
+            console.log('显示确认对话框 - 开始');
+            console.log('标题:', title);
+            console.log('消息:', message);
+            console.log('回调函数类型:', typeof onConfirm);
+
+            const modal = document.getElementById('confirmModal');
+            const titleElement = document.getElementById('confirmTitle');
+            const messageElement = document.getElementById('confirmMessage');
+            const confirmBtn = document.getElementById('confirmBtn');
+
+            if (!modal || !titleElement || !messageElement || !confirmBtn) {
+                console.error('确认对话框元素未找到:', {
+                    modal: !!modal,
+                    titleElement: !!titleElement,
+                    messageElement: !!messageElement,
+                    confirmBtn: !!confirmBtn
+                });
+                return;
+            }
+
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+
+            // 确保回调函数被正确保存
+            confirmCallback = onConfirm;
+            console.log('回调函数已保存到全局变量confirmCallback');
+
+            // 显示模态框
+            modal.classList.add('active');
+            console.log('模态框已显示');
+
+            // 清除之前的事件监听器
+            confirmBtn.onclick = null;
+            confirmBtn.removeEventListener('click', confirmBtn.onclick);
+
+            // 绑定确认按钮事件
+            const clickHandler = async function(event) {
+                console.log('=== 确认按钮被点击 ===');
+                console.log('event对象:', event);
+                console.log('confirmCallback存在:', !!confirmCallback);
+                console.log('confirmCallback类型:', typeof confirmCallback);
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                console.log('关闭模态框');
+                const callbackToRun = confirmCallback;
+                closeConfirmModal();
+
+                if (callbackToRun && typeof callbackToRun === 'function') {
+                    console.log('开始执行回调函数');
+                    try {
+                        await callbackToRun();
+                        console.log('回调函数执行完成');
+                    } catch (error) {
+                        console.error('执行确认回调时出错:', error);
+                        toastManager.error('执行操作时发生错误: ' + (error.message || '未知错误'));
+                    }
+                } else {
+                    console.error('confirmCallback不存在或不是函数');
+                    console.log('confirmCallback值:', confirmCallback);
+                }
+            };
+
+            confirmBtn.onclick = clickHandler;
+            console.log('确认按钮事件已绑定');
+
+            // 额外调试：直接测试回调函数
+            console.log('直接测试回调函数:');
+            if (confirmCallback) {
+                console.log('回调函数可用');
+            } else {
+                console.error('回调函数不可用');
+            }
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('active');
+            confirmCallback = null;
+        }
+
+        function closeInputModal(result = null) {
+            inputModalElement.classList.remove('active');
+            const resolver = inputDialogState.resolve;
+            inputDialogState = {
+                resolve: null,
+                validator: null,
+                required: true
+            };
+            inputModalInput.value = '';
+            inputModalError.textContent = '';
+            if (resolver) {
+                resolver(result);
+            }
+        }
+
+        function submitInputDialog() {
+            if (!inputDialogState.resolve) return;
+            const value = inputModalInput.value.trim();
+
+            if (inputDialogState.required && !value) {
+                inputModalError.textContent = '输入不能为空';
+                return;
+            }
+
+            if (inputDialogState.validator) {
+                const validationMessage = inputDialogState.validator(value);
+                if (validationMessage) {
+                    inputModalError.textContent = validationMessage;
+                    return;
+                }
+            }
+
+            inputModalError.textContent = '';
+            closeInputModal(value);
+        }
+
+        function showInputDialog(options = {}) {
+            const {
+                title = '输入',
+                message = '',
+                defaultValue = '',
+                placeholder = '',
+                required = true,
+                validator = null
+            } = options;
+
+            if (inputDialogState.resolve) {
+                closeInputModal(null);
+            }
+
+            inputDialogState.required = required;
+            inputDialogState.validator = validator;
+            inputModalTitle.textContent = title;
+            inputModalMessage.textContent = message;
+            inputModalInput.value = defaultValue || '';
+            inputModalInput.placeholder = placeholder || '';
+            inputModalError.textContent = '';
+
+            inputModalElement.classList.add('active');
+
+            setTimeout(() => {
+                inputModalInput.focus();
+                inputModalInput.select();
+            }, 50);
+
+            return new Promise((resolve) => {
+                inputDialogState.resolve = resolve;
+            });
+        }
+
+        inputModalConfirmBtn.addEventListener('click', submitInputDialog);
+        inputModalCancelBtn.addEventListener('click', () => closeInputModal(null));
+        inputModalInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submitInputDialog();
+            }
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeInputModal(null);
+            }
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfigs();
+            refreshEnvVars();
+            checkAdmin();
+
+            // 开发模式下测试功能（生产环境可删除）
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                // 添加测试快捷键 Ctrl+Shift+T - 测试Toast
+                document.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+                        testToastSystem();
+                    }
+                });
+
+                // 添加测试快捷键 Ctrl+Shift+C - 测试确认对话框
+                document.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                        testConfirmDialog();
+                    }
+                });
+
+                // 在控制台添加测试函数
+                window.testToast = testToastSystem;
+                window.testConfirm = testConfirmDialog;
+                console.log('测试功能已添加：');
+                console.log('- 按 Ctrl+Shift+T 测试Toast系统');
+                console.log('- 按 Ctrl+Shift+C 测试确认对话框');
+                console.log('- 或在控制台运行 testToast() / testConfirm()');
+            }
+        });
+
+        // 测试Toast系统
+        function testToastSystem() {
+            console.log('Testing Toast system...');
+
+            // 测试各种类型的Toast
+            toastManager.success('这是一个成功消息测试');
+
+            setTimeout(() => {
+                toastManager.error('这是一个错误消息测试');
+            }, 500);
+
+            setTimeout(() => {
+                toastManager.warning('这是一个警告消息测试');
+            }, 1000);
+
+            setTimeout(() => {
+                toastManager.info('这是一个信息消息测试');
+            }, 1500);
+
+            setTimeout(() => {
+                toastManager.show('自定义标题', '这是一个自定义标题的消息', 'info', 3000);
+            }, 2000);
+        }
+
+        // 测试确认对话框功能
+        function testConfirmDialog() {
+            console.log('Testing Confirm Dialog...');
+
+            const testCallback = async function() {
+                console.log('测试回调函数被执行');
+                toastManager.success('测试回调执行成功！');
+            };
+
+            showConfirmDialog('测试确认对话框', '这是一个测试确认对话框，点击确定会执行回调函数。', testCallback);
+        }
+
+        // 检查权限状态
+        async function checkAdmin() {
+            try {
+                const response = await fetch('/api/check-admin');
+                const data = await response.json();
+
+                // 测试环境变量访问权限
+                const envTestResponse = await fetch('/api/test-env-access');
+                const envTestData = await envTestResponse.json();
+
+                console.log('权限检查结果:', data);
+                console.log('环境变量访问测试结果:', envTestData);
+
+                // 显示权限状态
+                if (!envTestData.success) {
+                    toastManager.error('环境变量访问测试失败: ' + envTestData.message, 5000);
+                } else if (!envTestData.test_result.can_modify) {
+                    const testResult = envTestData.test_result;
+                    toastManager.error(`无法修改环境变量: ${testResult.error}`, 5000);
+
+                    if (testResult.recommendation) {
+                        setTimeout(() => {
+                            toastManager.info('建议: ' + testResult.recommendation, 6000);
+                        }, 1000);
+                    }
+                } else {
+                    toastManager.success('环境变量访问权限正常', 3000);
+                }
+
+                // 显示传统权限建议
+                if (!data.canModifyEnv) {
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        const recommendation = data.recommendations[0];
+                        if (recommendation.type === 'error') {
+                            toastManager.warning(recommendation.message, 4000);
+                        } else if (recommendation.type === 'warning') {
+                            toastManager.info(recommendation.message, 3000);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to check privileges:', error);
+                toastManager.error('权限检查失败');
+            }
+        }
+
+        // 显示权限提升模态框
+        function showAdminModal() {
+            const modal = document.getElementById('adminModal');
+            modal.classList.add('active');
+
+            let countdown = 6;
+            document.getElementById('countdown').textContent = countdown;
+
+            countdownInterval = setInterval(function() {
+                countdown--;
+                document.getElementById('countdown').textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    requestAdminPrivilege();
+                }
+            }, 1000);
+        }
+
+        // 关闭权限提升模态框
+        function closeAdminModal() {
+            const modal = document.getElementById('adminModal');
+            modal.classList.remove('active');
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        }
+
+        // 请求管理员权限
+        function requestAdminPrivilege() {
+            toastManager.info('请在弹出的Windows对话框中点击"是"以获得管理员权限', 3000);
+            // 实际的权限提升由后端处理
+        }
+
+        // 加载配置列表
+        async function loadConfigs() {
+            try {
+                const response = await fetch('/api/configs');
+                const data = await response.json();
+                configsData = data;
+                renderConfigList();
+            } catch (error) {
+                console.error('加载配置失败:', error);
+            }
+        }
+
+        // 渲染配置列表
+        function renderConfigList() {
+            const list = document.getElementById('configList');
+            list.innerHTML = '';
+
+            if (configsData.configs.length === 0) {
+                list.innerHTML = '<div style="padding: 24px; color: #86868b; text-align: center; font-size: 16px;">暂无配置<br><small>点击左下角"+ 新建"创建第一个配置</small></div>';
+                return;
+            }
+
+            configsData.configs.forEach(config => {
+                const item = document.createElement('div');
+                item.className = 'config-item' + (config.id === currentConfigId ? ' active' : '');
+                item.innerHTML = `
+                    <div class="config-item-name">
+                        <span class="config-item-star">${config.isDefault || config.id === configsData.defaultConfigId ? '⭐' : ''}</span>
+                        <span>${config.name}</span>
+                    </div>
+                    <div class="config-item-actions">
+                        <button class="btn-small" onclick="setAsDefault('${config.id}', event)" title="设为默认">✓</button>
+                        <button class="btn-small" onclick="editConfigName('${config.id}', event)" title="编辑名称">✎</button>
+                        <button class="btn-small" onclick="deleteConfig('${config.id}', event)" title="删除">✕</button>
+                    </div>
+                `;
+                item.addEventListener('click', () => selectConfig(config.id));
+                list.appendChild(item);
+            });
+        }
+
+        // 选择配置
+        function selectConfig(configId) {
+            currentConfigId = configId;
+            renderConfigList();
+            renderEditor();
+        }
+
+        // 渲染编辑器
+        function renderEditor() {
+            const panel = document.getElementById('editorPanel');
+
+            if (!currentConfigId) {
+                panel.classList.add('empty');
+                panel.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">📝</div>
+                        <div style="font-size: 18px; color: #86868b;">选择一个配置开始编辑</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const config = configsData.configs.find(c => c.id === currentConfigId);
+            if (!config) return;
+
+            panel.classList.remove('empty');
+            panel.innerHTML = `
+                <div class="editor-heading">
+                    <div class="editor-title">${config.name}</div>
+                    <div class="current-config-chip">当前配置</div>
+                </div>
+            `;
+
+            const envVars = ['ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL', 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC', 'AI_model'];
+            envVars.forEach(varName => {
+                const value = config[varName] || '';
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                group.innerHTML = `
+                    <label class="form-label">${varName}</label>
+                    <input type="text" class="form-input" id="input_${varName}" value="${value}" placeholder="输入${varName}的值">
+                    <div class="validation-warning" id="warning_${varName}"></div>
+                `;
+                panel.appendChild(group);
+            });
+        }
+
+        // 创建新配置
+        async function createNewConfig() {
+            const name = await showInputDialog({
+                title: '创建新配置',
+                message: '请输入配置名称',
+                defaultValue: '新配置',
+                placeholder: '例如：开发环境配置'
+            });
+            if (!name) return;
+
+            try {
+                const response = await fetch('/api/configs', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name: name})
+                });
+                const data = await response.json();
+                await loadConfigs();
+                selectConfig(data.config.id);
+                toastManager.success('配置创建成功');
+            } catch (error) {
+                toastManager.error('创建失败: ' + error);
+            }
+        }
+
+        // 保存配置
+        async function saveCurrentConfig() {
+            if (!currentConfigId) {
+                toastManager.warning('请先选择一个配置');
+                return false;
+            }
+
+            const config = configsData.configs.find(c => c.id === currentConfigId);
+            const envVars = ['ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL', 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC', 'AI_model'];
+
+            const updateData = {};
+            let hasWarnings = false;
+
+            envVars.forEach(varName => {
+                const input = document.getElementById(`input_${varName}`);
+                updateData[varName] = input.value;
+            });
+
+            // 验证配置
+            try {
+                const validResponse = await fetch('/api/validate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(updateData)
+                });
+                const validData = await validResponse.json();
+
+                // 显示警告
+                envVars.forEach(varName => {
+                    const warningElement = document.getElementById(`warning_${varName}`);
+                    const warnings = validData.warnings.filter(w => w.includes(varName));
+                    warningElement.textContent = warnings.join('; ');
+                    if (warnings.length > 0) hasWarnings = true;
+                });
+
+                if (hasWarnings) {
+                    // 这里不使用confirm，而是让用户决定是否继续
+                    // 应用配置时会自动保存，所以这里只做验证
+                }
+            } catch (error) {
+                console.error('验证失败:', error);
+            }
+
+            try {
+                const response = await fetch(`/api/configs/${currentConfigId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(updateData)
+                });
+                if (response.ok) {
+                    await loadConfigs();
+                    selectConfig(currentConfigId);
+                    return true;
+                } else {
+                    toastManager.error('保存失败');
+                    return false;
+                }
+            } catch (error) {
+                toastManager.error('保存失败: ' + error);
+                return false;
+            }
+        }
+
+        // 应用配置
+        async function applyCurrentConfig() {
+            console.log('applyCurrentConfig被调用，currentConfigId:', currentConfigId);
+
+            if (!currentConfigId) {
+                console.log('没有选择配置，显示警告');
+                toastManager.warning('请先选择一个配置');
+                return;
+            }
+
+            // 定义回调函数
+            const callback = async function() {
+                console.log('回调函数开始执行');
+                await executeApplyConfig();
+                console.log('回调函数执行完成');
+            };
+
+            console.log('准备显示确认对话框');
+            // 显示确认对话框
+            showConfirmDialog('应用配置', '确定要应用此配置到系统环境变量吗？', callback);
+        }
+
+        // 执行应用配置的实际操作
+        async function executeApplyConfig() {
+            console.log('开始执行应用配置，当前配置ID:', currentConfigId);
+
+            try {
+                // 先保存配置
+                console.log('正在保存配置...');
+                const saveSuccess = await saveCurrentConfig();
+                console.log('保存配置结果:', saveSuccess);
+
+                if (!saveSuccess) {
+                    toastManager.error('保存配置失败，无法应用配置');
+                    return;
+                }
+
+                console.log('准备应用配置到系统环境变量...');
+                toastManager.info('正在应用配置到系统环境变量...');
+
+                console.log('发送API请求:', `/api/configs/${currentConfigId}/apply`);
+                const response = await fetch(`/api/configs/${currentConfigId}/apply`, {
+                    method: 'POST'
+                });
+
+                console.log('API响应状态:', response.status);
+                const data = await response.json();
+                console.log('API响应数据:', data);
+
+                if (!data.success) {
+                    console.log('应用配置失败:', data.message);
+                    toastManager.error(data.message || '应用配置失败', 5000);
+                    return;
+                }
+
+                console.log('配置应用成功，准备刷新环境变量...');
+                toastManager.success('配置已成功应用到系统环境变量');
+                await refreshEnvVars();
+
+            } catch (error) {
+                console.error('Apply config error:', error);
+                toastManager.error('应用配置时发生错误: ' + (error.message || '未知错误'), 5000);
+            }
+        }
+
+        // 刷新环境变量显示
+        async function refreshEnvVars() {
+            try {
+                const response = await fetch('/api/env-vars');
+                const data = await response.json();
+
+                const panel = document.getElementById('statusContent');
+                panel.innerHTML = '';
+
+                Object.entries(data.vars).forEach(([key, value]) => {
+                    const displayValue = value || '(未设置)';
+                    const item = document.createElement('div');
+                    item.className = 'status-item';
+                    item.innerHTML = `
+                        <div class="status-item-label" title="${key}">${key}</div>
+                        <div class="status-item-value" title="${displayValue}">${displayValue}</div>
+                    `;
+                    panel.appendChild(item);
+                });
+                toastManager.info('环境变量状态已刷新');
+            } catch (error) {
+                toastManager.error('刷新失败: ' + error);
+            }
+        }
+
+        // 设为默认配置
+        async function setAsDefault(configId, event) {
+            event.stopPropagation();
+            try {
+                await fetch(`/api/configs/${configId}/set-default`, {method: 'POST'});
+                await loadConfigs();
+                toastManager.success('已设置为默认配置');
+            } catch (error) {
+                toastManager.error('设置失败: ' + error);
+            }
+        }
+
+        // 编辑配置名称
+        async function editConfigName(configId, event) {
+            event.stopPropagation();
+            const config = configsData.configs.find(c => c.id === configId);
+            if (!config) {
+                toastManager.error('配置不存在');
+                return;
+            }
+
+            const newName = await showInputDialog({
+                title: '修改配置名称',
+                message: '请输入新的配置名称',
+                defaultValue: config.name || '',
+                placeholder: '请输入配置名称'
+            });
+            if (!newName || newName === config.name) return;
+
+            try {
+                await fetch(`/api/configs/${configId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({...config, name: newName})
+                });
+                await loadConfigs();
+                selectConfig(configId);
+                toastManager.success('名称修改成功');
+            } catch (error) {
+                toastManager.error('修改失败: ' + error);
+            }
+        }
+
+        // 删除配置
+        async function deleteConfig(configId, event) {
+            event.stopPropagation();
+
+            showConfirmDialog('删除配置', '确认删除此配置吗？该操作不可撤销。', async () => {
+                try {
+                    await fetch(`/api/configs/${configId}`, {method: 'DELETE'});
+                    if (currentConfigId === configId) {
+                        currentConfigId = null;
+                        renderEditor();
+                    }
+                    await loadConfigs();
+                    toastManager.success('配置删除成功');
+                } catch (error) {
+                    toastManager.error('删除失败: ' + error);
+                }
+            });
+        }
+
+        // 导出配置
+        async function exportConfigs() {
+            try {
+                const response = await fetch('/api/export');
+                const data = await response.json();
+
+                const json = JSON.stringify(data, null, 2);
+                const blob = new Blob([json], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `env-configs-${new Date().getTime()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toastManager.success('配置导出成功');
+            } catch (error) {
+                toastManager.error('导出失败: ' + error);
+            }
+        }
+
+        // 导入配置
+        function importConfigs() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        const response = await fetch('/api/import', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(data)
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            toastManager.success('导入成功');
+                            await loadConfigs();
+                        } else {
+                            toastManager.error('导入失败: ' + result.message);
+                        }
+                    } catch (error) {
+                        toastManager.error('文件格式错误: ' + error);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+    </script>
+</body>
+</html>
