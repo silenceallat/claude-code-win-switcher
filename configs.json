@@ -1,0 +1,115 @@
+{
+  "defaultConfigId": "176e9311",
+  "configs": [
+    {
+      "id": "176e9311",
+      "name": "GLM 示例配置",
+      "isDefault": true,
+      "ANTHROPIC_AUTH_TOKEN": "your-glm-api-token-here",
+      "ANTHROPIC_BASE_URL": "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "GLM-4.6",
+      "createdAt": "2025-11-09T17:51:06.852614"
+    },
+    {
+      "id": "4f6ca74a",
+      "name": "OpenRouter 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "sk-or-v1-your-openrouter-token-here",
+      "ANTHROPIC_BASE_URL": "https://openrouter.ai/api/v1/",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "anthropic/claude-haiku-4.5",
+      "createdAt": "2025-11-09T17:52:06.682403"
+    },
+    {
+      "id": "bec0aaaa",
+      "name": "魔搭 ModelScope 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "your-modelscope-token-here",
+      "ANTHROPIC_BASE_URL": "https://api-inference.modelscope.cn",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+      "createdAt": "2025-11-09T17:53:09.872450"
+    },
+    {
+      "id": "a1f47c2e",
+      "name": "OpenAI GPT-4o 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "sk-your-openai-token-here",
+      "ANTHROPIC_BASE_URL": "https://api.openai.com/v1/",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "gpt-4o-mini",
+      "createdAt": "2025-11-09T17:54:10.102300"
+    },
+    {
+      "id": "b72d91f5",
+      "name": "Azure OpenAI 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "your-azure-openai-token-here",
+      "ANTHROPIC_BASE_URL": "https://your-azure-resource.openai.azure.com/openai/deployments/",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "gpt-4o-mini-azure",
+      "createdAt": "2025-11-09T17:55:12.542611"
+    },
+    {
+      "id": "c3e84bd0",
+      "name": "DeepSeek 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "sk-your-deepseek-token-here",
+      "ANTHROPIC_BASE_URL": "https://api.deepseek.com/v1/",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "deepseek-coder",
+      "createdAt": "2025-11-09T17:56:14.812930"
+    },
+    {
+      "id": "d94b6efa",
+      "name": "月之暗面 Moonshot 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "sk-your-moonshot-token-here",
+      "ANTHROPIC_BASE_URL": "https://api.moonshot.cn/v1/",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "moonshot-v1-128k",
+      "createdAt": "2025-11-09T17:57:16.045221"
+    },
+    {
+      "id": "e8a5c0d3",
+      "name": "SiliconFlow 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "sk-your-siliconflow-token-here",
+      "ANTHROPIC_BASE_URL": "https://api.siliconflow.cn/v1/",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "Qwen/Qwen2.5-Coder-32B-Instruct",
+      "createdAt": "2025-11-09T17:58:18.331402"
+    },
+    {
+      "id": "f2d9a7bc",
+      "name": "豆包 Doubao 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "your-doubao-token-here",
+      "ANTHROPIC_BASE_URL": "https://ark.cn-beijing.volces.com/api/v3/",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "ep-your-deployment-id",
+      "createdAt": "2025-11-09T17:59:20.445893"
+    },
+    {
+      "id": "fbe13d8a",
+      "name": "通义千问 DashScope 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "sk-your-dashscope-token-here",
+      "ANTHROPIC_BASE_URL": "https://dashscope.aliyuncs.com/api/v1/",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "qwen-max",
+      "createdAt": "2025-11-09T18:00:22.712554"
+    },
+    {
+      "id": "0c6fe5d1",
+      "name": "Groq 示例配置",
+      "isDefault": false,
+      "ANTHROPIC_AUTH_TOKEN": "gsk_your-groq-token-here",
+      "ANTHROPIC_BASE_URL": "https://api.groq.com/openai/v1/",
+      "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+      "AI_model": "llama-3.1-70b-versatile",
+      "createdAt": "2025-11-09T18:01:24.965113"
+    }
+  ]
+}
