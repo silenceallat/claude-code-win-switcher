@@ -158,8 +158,8 @@ Set-ItemProperty -Path "HKCU:\Environment" -Name $VarName -Value $VarValue
 
 1. 克隆项目
 ```bash
-git clone https://github.com/yourusername/cc_switch_win10.git
-cd cc_switch_win10
+git clone https://github.com/silenceallat/claude-code-win-switcher.git
+cd claude-code-win-switcher
 ```
 
 2. 安装依赖
@@ -239,9 +239,9 @@ python app.py
 
 ## 📞 联系方式
 
-- 📧 Email: your.email@example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/cc_switch_win10/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/cc_switch_win10/discussions)
+- 📧 Email: silenceallat@gmail.com
+- 🐛 Issues: [GitHub Issues](https://github.com/silenceallat/claude-code-win-switcher/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/silenceallat/claude-code-win-switcher/discussions)
 
 ---
 
